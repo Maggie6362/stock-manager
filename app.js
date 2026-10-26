@@ -263,7 +263,7 @@
 
   // 全域應用狀態
   const state = {
-    viewportMode: localStorage.getItem(STORAGE_KEYS.VIEWPORT_MODE) || 'iphone', // 'iphone' | 'ipad' | 'responsive'
+    viewportMode: 'responsive',
     authMode: null, // null (未登入鎖定) | 'sandbox' | 'supabase'
     sessionUser: null,
     supabaseClient: null,
@@ -1301,15 +1301,6 @@
             </svg>
             <span>使用 Google 登入</span>
           </button>
-
-          <div class="login-secondary-actions">
-            <button type="button" class="btn-sandbox-enter" data-action="enter-sandbox">
-              🧪 進入本地驗收沙盒（含示意圖對照資料 & T01–T12 測試）
-            </button>
-            <button type="button" class="btn-config-supabase" data-action="open-supabase-config">
-              ⚙️ 設定 Supabase URL 與 Anon Key（啟用正式 Google 跨裝置同步）
-            </button>
-          </div>
         </div>
 
         <div class="login-trust-grid">
@@ -1992,7 +1983,7 @@
   }
 
   /**
-   * 6. 帳戶管理與系統設定頁面 (對應「6. 帳戶管理頁面」示意圖 + T01–T12 規格驗收器 + 資料備份)
+   * 6. 帳戶管理與系統設定頁面 (對應「6. 帳戶管理頁面」示意圖 + 資料備份與帳號登出)
    */
   function renderAccountsTab(portfolio) {
     const accCardsHtml = state.accounts
@@ -2022,81 +2013,28 @@
       })
       .join('');
 
-    const report = state.acceptanceReport || window.StockEngine.runAcceptanceTests();
-    const testRowsHtml = report.results
-      .map(
-        (r) => `
-        <tr>
-          <td style="white-space:nowrap;font-weight:900;color:${r.passed ? 'var(--down-green)' : 'var(--up-red)'};">
-            ${r.passed ? '✅' : '❌'} ${escapeHtml(r.id)}
-          </td>
-          <td style="font-weight:800;">${escapeHtml(r.name)}</td>
-          <td class="wrap-text" style="font-size:12.5px;color:var(--text-secondary);">${escapeHtml(r.detail)}</td>
-        </tr>
-      `
-      )
-      .join('');
-
     return `
       <div class="account-cards-list">
         ${accCardsHtml}
       </div>
 
-      <!-- 對應 6. 帳戶管理頁面底部紅色警示框 (SPEC 4.7) -->
-      <div class="warning-banner">
-        <span>❗</span>
-        <span>若帳戶內含交易紀錄，刪除時會跳出警告並預設保護阻擋直接刪除，絕不靜默連帶刪除交易紀錄。</span>
-      </div>
-
-      <!-- 帳號狀態、資料備份與 Supabase 設定卡片 -->
+      <!-- 帳號狀態與資料備份卡片 -->
       <div class="section-card">
         <div class="section-header">
-          <span class="section-title">資料備份與雲端連線設定</span>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          <button type="button" class="btn-header-action" data-action="export-backup">
-            💾 匯出 JSON 備份
-          </button>
-          <button type="button" class="btn-header-action blue" data-action="open-supabase-config">
-            ⚙️ Supabase 連線設定
-          </button>
+          <span class="section-title">帳號與資料備份</span>
           ${
-            state.authMode === 'sandbox'
-              ? `<button type="button" class="btn-header-action" style="background:#8E7F71;" data-action="reset-demo-data">
-                   🔄 還原示意圖預設資料
-                 </button>
-                 <button type="button" class="btn-header-action" style="background:#A67B5B;" data-action="clear-sandbox-data">
-                   🧹 清空交易從零測試
-                 </button>`
+            state.sessionUser && state.sessionUser.email
+              ? `<span style="font-size:12.5px;color:var(--text-secondary);font-weight:700;">☁️ ${escapeHtml(state.sessionUser.email)}</span>`
               : ''
           }
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          <button type="button" class="btn-header-action" data-action="export-backup">
+            💾 匯出備份 (JSON)
+          </button>
           <button type="button" class="btn-header-action" style="background:#B84A4A;" data-action="logout">
-            🚪 登出並鎖定
+            🚪 登出帳號
           </button>
-        </div>
-      </div>
-
-      <!-- T01–T12 規格驗收測試報告面板 (ANTIGRAVITY_TASK 第 7 點) -->
-      <div class="section-card">
-        <div class="section-header">
-          <span class="section-title">🧪 SPEC.md T01–T12 規格驗收報告 (${report.passedCount}/${report.totalCount} 通過)</span>
-          <button type="button" class="btn-select-all" data-action="rerun-acceptance-tests">
-            重新執行驗證
-          </button>
-        </div>
-        <div class="table-scroll-wrap">
-          <table class="morandi-table">
-            <thead>
-              <tr>
-                <th>編號</th>
-                <th>驗收項目</th>
-                <th>實測結果與驗證數據</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${testRowsHtml}
-            </tbody>
-          </table>
         </div>
       </div>
     `;
@@ -2613,14 +2551,7 @@
 
     // T01: 未登入時只可看到登入頁，不能讀取任何帳戶或交易資料
     if (!state.authMode) {
-      shellEl.innerHTML = `
-        <div class="iphone-notch-bar">
-          <span>9:41</span>
-          <div class="notch-pill"></div>
-          <span>5G 100%</span>
-        </div>
-        ${renderLoginScreen()}
-      `;
+      shellEl.innerHTML = renderLoginScreen();
       modalRootEl.innerHTML = renderActiveModal();
       return;
     }
@@ -2652,7 +2583,7 @@
       { id: 'transactions', label: '交易紀錄', fullLabel: '交易紀錄', icon: '📋' },
       { id: 'holdings', label: '持倉', fullLabel: '持倉總覽', icon: '📊' },
       { id: 'reports', label: '報表', fullLabel: '損益報表', icon: '📈' },
-      { id: 'accounts', label: '設定', fullLabel: '帳戶與驗收', icon: '⚙️' },
+      { id: 'accounts', label: '設定', fullLabel: '帳戶管理', icon: '⚙️' },
     ];
 
     const sideNavHtml = `
@@ -2700,11 +2631,6 @@
     `;
 
     shellEl.innerHTML = `
-      <div class="iphone-notch-bar">
-        <span>9:41</span>
-        <div class="notch-pill"></div>
-        <span>5G 100%</span>
-      </div>
       ${sideNavHtml}
       <div class="main-area">
         ${renderTopHeader()}

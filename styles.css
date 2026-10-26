@@ -93,196 +93,49 @@ button {
 }
 
 /* ==========================================================================
-   頂部裝置視角切換器 (僅在桌面大螢幕顯示，方便一鍵預覽 iPhone / iPad / 寬螢幕)
-   ========================================================================== */
-.viewport-switcher-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  max-width: 1320px;
-  margin: 12px auto 6px;
-  padding: 8px 16px;
-  background: rgba(252, 249, 245, 0.88);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border-warm);
-  border-radius: 999px;
-  box-shadow: var(--shadow-card);
-  font-size: 14px;
-}
-
-.switcher-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.switcher-buttons {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--surface-subtle);
-  padding: 4px;
-  border-radius: 999px;
-}
-
-.vp-btn {
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  transition: all 0.2s ease;
-}
-
-.vp-btn.active {
-  background: var(--brand-green);
-  color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(88, 139, 113, 0.35);
-}
-
-.switcher-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-  background: var(--card-mint-bg);
-  color: var(--down-green);
-  border: 1px solid var(--card-mint-border);
-}
-
-.status-pill.sandbox {
-  background: var(--card-cream-bg);
-  color: #8A6226;
-  border-color: var(--card-cream-border);
-}
-
-/* 在真實手機螢幕上隱藏外框切換器，直接使用原生全螢幕 */
-@media (max-width: 640px) {
-  .viewport-switcher-bar {
-    display: none !important;
-  }
-}
-
-/* ==========================================================================
-   主應用容器：支援 iPhone 直向模擬框 / iPad 橫向框 / 自動響應式全寬
+   主應用容器：自動適應 iPhone 手機、iPad 橫向看板、電腦全寬模式
    ========================================================================== */
 .workspace-stage {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 8px 16px 32px;
-  min-height: calc(100vh - 64px);
+  align-items: stretch;
+  padding: 0;
+  min-height: 100vh;
 }
 
-/* 預設 iPhone 優先外框模式 (在桌機瀏覽時直觀呈現 iPhone 16 Pro 尺寸與質感) */
-body[data-viewport="iphone"] .app-shell {
-  width: 412px;
-  max-width: 100%;
-  min-height: 852px;
-  max-height: 880px;
-  border-radius: 46px;
-  border: 10px solid #2D2723;
-  box-shadow: var(--shadow-device);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  background: var(--bg-shell);
-}
-
-/* iPhone 動態島裝飾（僅在桌機預覽 iPhone 外框時顯示） */
 .iphone-notch-bar {
-  display: none;
+  display: none !important;
 }
 
-body[data-viewport="iphone"] .iphone-notch-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 24px 4px;
-  background: var(--bg-shell);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-primary);
-  flex-shrink: 0;
-}
-
-.notch-pill {
-  width: 96px;
-  height: 22px;
-  background: #1E1A17;
-  border-radius: 999px;
-}
-
-/* iPad 橫向預覽模式 */
-body[data-viewport="ipad"] .app-shell {
-  width: 1080px;
-  max-width: 100%;
-  min-height: 740px;
-  border-radius: 34px;
-  border: 10px solid #2D2723;
-  box-shadow: var(--shadow-device);
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  background: var(--bg-shell);
-  position: relative;
-}
-
-/* 自動適應全螢幕模式 */
-body[data-viewport="responsive"] .app-shell {
+.app-shell {
   width: 100%;
-  max-width: 1280px;
-  min-height: calc(100vh - 90px);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-warm);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
+  min-height: 100vh;
   background: var(--bg-shell);
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
-@media (min-width: 1024px) {
-  body[data-viewport="responsive"] .app-shell {
+/* iPad (768px 以上) 與 電腦寬螢幕：自動切換為左側導覽看板佈局 */
+@media (min-width: 768px) {
+  .workspace-stage {
+    padding: 16px 20px;
+  }
+  .app-shell {
+    max-width: 1380px;
+    min-height: calc(100vh - 32px);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-warm);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
     display: grid;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: 220px 1fr;
   }
 }
 
-@media (max-width: 640px) {
-  .workspace-stage {
-    padding: 0;
-    min-height: 100vh;
-  }
-  body[data-viewport="iphone"] .app-shell,
-  body[data-viewport="ipad"] .app-shell,
-  body[data-viewport="responsive"] .app-shell {
-    width: 100% !important;
-    min-height: 100vh !important;
-    max-height: none !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  body[data-viewport="iphone"] .iphone-notch-bar {
-    display: none !important;
+@media (min-width: 1200px) {
+  .app-shell {
+    grid-template-columns: 245px 1fr;
   }
 }
 
@@ -420,8 +273,25 @@ body[data-viewport="responsive"] .app-shell {
   height: 42px;
 }
 
+/* 膠囊型切換按鈕 */
+.vp-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--surface-subtle);
+  transition: all 0.2s ease;
+}
+
+.vp-btn.active {
+  background: var(--brand-green);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(88, 139, 113, 0.35);
+}
+
 /* ==========================================================================
-   左側導覽欄 (iPad 橫向 & 桌面寬螢幕顯示)
+   左側導覽欄 (iPad & 桌面寬螢幕顯示)
    ========================================================================== */
 .side-nav {
   display: none;
@@ -432,12 +302,8 @@ body[data-viewport="responsive"] .app-shell {
   padding: 24px 14px;
 }
 
-body[data-viewport="ipad"] .side-nav {
-  display: flex;
-}
-
-@media (min-width: 1024px) {
-  body[data-viewport="responsive"] .side-nav {
+@media (min-width: 768px) {
+  .side-nav {
     display: flex;
   }
 }
@@ -599,13 +465,9 @@ body[data-viewport="ipad"] .side-nav {
   gap: 14px;
 }
 
-body[data-viewport="ipad"] .scroll-content {
-  padding: 18px 22px 28px;
-}
-
-@media (min-width: 1024px) {
-  body[data-viewport="responsive"] .scroll-content {
-    padding: 20px 26px 32px;
+@media (min-width: 768px) {
+  .scroll-content {
+    padding: 20px 24px 32px;
   }
 }
 
@@ -838,12 +700,8 @@ body[data-viewport="ipad"] .clay-svg-stat {
   gap: 11px;
 }
 
-body[data-viewport="ipad"] .quick-actions-grid {
-  grid-template-columns: repeat(4, 1fr);
-}
-
-@media (min-width: 1024px) {
-  body[data-viewport="responsive"] .quick-actions-grid {
+@media (min-width: 768px) {
+  .quick-actions-grid {
     grid-template-columns: repeat(4, 1fr);
   }
 }
@@ -993,19 +851,15 @@ body[data-viewport="ipad"] .quick-actions-grid {
   color: var(--down-green);
 }
 
-/* 寬螢幕／iPad 雙欄圖表列 */
+/* iPad 與電腦寬螢幕雙欄圖表列 */
 .charts-two-col {
   display: grid;
   grid-template-columns: 1fr;
   gap: 14px;
 }
 
-body[data-viewport="ipad"] .charts-two-col {
-  grid-template-columns: 1.15fr 0.85fr;
-}
-
-@media (min-width: 900px) {
-  body[data-viewport="responsive"] .charts-two-col {
+@media (min-width: 768px) {
+  .charts-two-col {
     grid-template-columns: 1.15fr 0.85fr;
   }
 }
@@ -1182,10 +1036,10 @@ body[data-viewport="ipad"] .charts-two-col {
 }
 
 /* ==========================================================================
-   底部導覽列 (iPhone / iPad 直向底部固定導覽)
+   底部導覽列 (手機底部固定導覽，iPad 與電腦自動改用左側導覽)
    ========================================================================== */
 .bottom-nav {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
@@ -1199,19 +1053,9 @@ body[data-viewport="ipad"] .charts-two-col {
   z-index: 30;
 }
 
-body[data-viewport="ipad"] .bottom-nav {
-  display: none;
-}
-
-@media (min-width: 1024px) {
-  body[data-viewport="responsive"] .bottom-nav {
-    display: none;
-  }
-}
-
-@media (max-width: 640px) {
+@media (min-width: 768px) {
   .bottom-nav {
-    position: fixed;
+    display: none !important;
   }
 }
 

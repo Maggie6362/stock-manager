@@ -12,35 +12,17 @@
   <link rel="icon" type="image/png" sizes="180x180" href="./apple-touch-icon.png" />
   <link rel="manifest" href="./manifest.json" />
   <link rel="stylesheet" href="./styles.css" />
-  <!-- Supabase JS SDK v2 (僅使用公開 anon key 與 RLS，絕不使用 service_role key) -->
+  <!-- Supabase JS SDK v2 (僅使用公開 anon key 與 RLS) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 </head>
-<body data-viewport="iphone">
+<body data-viewport="responsive">
   <!-- 3D 黏土 SVG 漸層與陰影共用濾鏡掛載點 -->
   <div id="svg-defs-host" aria-hidden="true"></div>
 
   <!-- 頂部通知 Toast 容器 -->
   <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-  <!-- 頂部裝置視角快速切換列 (桌機開啟時預設優先展示 iPhone 直向介面，亦可一鍵切換 iPad / 寬螢幕或檢視登入頁) -->
-  <div class="viewport-switcher-bar" role="region" aria-label="預覽視角與狀態切換列">
-    <div class="switcher-left">
-      <span>📱 介面視角預覽：</span>
-      <div class="switcher-buttons">
-        <button type="button" class="vp-btn active" data-vp-mode="iphone">iPhone 直向（優先）</button>
-        <button type="button" class="vp-btn" data-vp-mode="ipad">iPad 橫向看板</button>
-        <button type="button" class="vp-btn" data-vp-mode="responsive">自動適應全寬</button>
-      </div>
-    </div>
-    <div class="switcher-right">
-      <span id="auth-status-pill" class="status-pill sandbox">🧪 本地驗收沙盒</span>
-      <button type="button" class="vp-btn" style="background:var(--surface-subtle);border:1px solid var(--border-warm);" data-action="logout" title="切換至未登入鎖定畫面以驗收登入頁">
-        🔑 檢視登入頁
-      </button>
-    </div>
-  </div>
-
-  <!-- 主應用舞台 -->
+  <!-- 主應用舞台（自動適應 iPhone 直向、iPad 橫向看板與電腦全寬模式） -->
   <div class="workspace-stage">
     <div id="app-shell" class="app-shell">
       <!-- 由 app.js 動態渲染登入頁或五大功能頁面 -->
