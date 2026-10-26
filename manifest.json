@@ -1,0 +1,23 @@
+{
+  "name": "持股管家",
+  "short_name": "持股管家",
+  "description": "個人股票買賣與損益管理小幫手",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#EFE7DC",
+  "theme_color": "#EFE7DC",
+  "icons": [
+    {
+      "src": "./apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

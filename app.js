@@ -289,6 +289,7 @@
     lastQuoteSyncAt: null,
     lastQuoteSyncError: null,
     isUpdatingQuotes: false,
+    isSyncingCloud: false,
 
     // 交易紀錄篩選狀態 (SPEC 4.3: 帳戶、日期區間、股票代號)
     txFilter: {
@@ -338,7 +339,11 @@
         }
       }
     } catch (_) {}
-    return { url: 'https://luoladoworyayvyekbiq.supabase.co', anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1b2xhZG93b3J5YXl2eWVrYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2NTU0ODAsImV4cCI6MjEwODIzMTQ4MH0.Ee5HYWgWvemexgDqoATLyEJIvcodKAytxLroNJU3yWk' };
+    return {
+      url: 'https://luoladoworyayvyekbiq.supabase.co',
+      anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1b2xhZG93b3J5YXl2eWVrYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2NTU0ODAsImV4cCI6MjEwODIzMTQ4MH0.Ee5HYWgWvemexgDqoATLyEJIvcodKAytxLroNJU3yWk',
+    };
   }
 
   function saveSandboxState() {
@@ -485,7 +490,8 @@
         state.sessionUser = data.session.user;
         await syncFromSupabaseCloud();
       }
-      state.supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+      state.supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'INITIAL_SESSION') return;
         if (session && session.user) {
           state.authMode = 'supabase';
           state.sessionUser = session.user;
@@ -511,6 +517,8 @@
    */
   async function syncFromSupabaseCloud() {
     if (!state.supabaseClient || !state.sessionUser) return;
+    if (state.isSyncingCloud) return;
+    state.isSyncingCloud = true;
     const uid = state.sessionUser.id;
     const T = state.supabaseTables;
     try {
@@ -534,10 +542,17 @@
         }));
         const { data: insertedAccs, error: insErr } = await state.supabaseClient
           .from(T.accounts)
-          .insert(toInsert)
+          .upsert(toInsert, { onConflict: 'user_id,name', ignoreDuplicates: true })
           .select('*');
-        if (!insErr && insertedAccs) {
+        if (!insErr && insertedAccs && insertedAccs.length > 0) {
           accs = insertedAccs;
+        } else {
+          const { data: refetched } = await state.supabaseClient
+            .from(T.accounts)
+            .select('*')
+            .order('sort_order', { ascending: true })
+            .order('created_at', { ascending: true });
+          accs = refetched || [];
         }
       }
 
@@ -581,6 +596,8 @@
       renderApp();
     } catch (err) {
       showToast(`雲端資料同步失敗：${err.message || err}`, 'error');
+    } finally {
+      state.isSyncingCloud = false;
     }
   }
 
@@ -1271,7 +1288,7 @@
     return `
       <div class="login-screen">
         <div class="login-hero-box">
-          ${window.ClayIcons.piggyHero()}
+          <img src="./icon-512.png" alt="3D黏土小豬撲滿" class="clay-svg-hero" style="width:185px;height:185px;object-fit:contain;border-radius:28px;" />
           <h1 class="login-title">持股管家</h1>
           <p class="login-subtitle">簡單記錄 · 清楚掌握 · 安心投資</p>
 
