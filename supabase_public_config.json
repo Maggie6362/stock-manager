@@ -1,0 +1,15 @@
+{
+  "url": "https://luoladoworyayvyekbiq.supabase.co",
+  "anonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1b2xhZG93b3J5YXl2eWVrYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2NTU0ODAsImV4cCI6MjEwODIzMTQ4MH0.Ee5HYWgWvemexgDqoATLyEJIvcodKAytxLroNJU3yWk",
+  "projectRef": "luoladoworyayvyekbiq",
+  "projectName": "project-manager-test",
+  "tablesMap": {
+    "profiles": "sh_profiles",
+    "accounts": "accounts",
+    "transactions": "transactions",
+    "prices": "prices"
+  },
+  "googleEnabled": true,
+  "callbackUrl": "https://luoladoworyayvyekbiq.supabase.co/auth/v1/callback",
+  "updatedAt": "2026-10-26T14:23:10.309Z"
+}

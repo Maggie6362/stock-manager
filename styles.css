@@ -1,0 +1,1445 @@
+/* ==========================================================================
+   股票買賣與損益管理小幫手 — 莫蘭迪奶茶色系 × 3D 黏土風格響應式樣式表 (styles.css)
+   優先實現 iPhone 直向體驗，並完整支援 iPad 與桌面寬螢幕左側導覽佈局。
+   ========================================================================== */
+
+:root {
+  /* 莫蘭迪與溫暖奶茶基底色票 */
+  --bg-milktea: #EFE7DC;
+  --bg-milktea-deep: #E5DACB;
+  --bg-shell: #F7F2EA;
+  --surface-card: #FCF9F5;
+  --surface-subtle: #F4EDE2;
+  --border-warm: #E3D8C8;
+  --border-soft: #EBE2D5;
+
+  /* 四大統計卡莫蘭迪粉彩色 */
+  --card-mint-bg: #DFEFE7;
+  --card-mint-border: #C8E2D5;
+  --card-rose-bg: #F9E4E2;
+  --card-rose-border: #F0CECB;
+  --card-cream-bg: #F6EFE0;
+  --card-cream-border: #E8DEC5;
+  --card-blue-bg: #E4EAF6;
+  --card-blue-border: #CFD9EE;
+
+  /* 快捷入口卡片粉彩色 */
+  --action-1-bg: #F3ECE3;
+  --action-2-bg: #E6EBF8;
+  --action-3-bg: #E2F0E8;
+  --action-4-bg: #F8E6E0;
+
+  /* 文字色階（高對比易讀） */
+  --text-primary: #2F2620;
+  --text-secondary: #685B4F;
+  --text-muted: #8E7F71;
+
+  /* 台股紅漲綠跌 × 莫蘭迪柔和調校 */
+  --up-red: #C93B3B;
+  --up-red-bg: #FADAD8;
+  --up-red-border: #F2B8B4;
+  --down-green: #2F7D5C;
+  --down-green-bg: #D6EFE3;
+  --down-green-border: #AEDBC5;
+
+  /* 主題強調色（莫蘭迪森林綠／岩石藍） */
+  --brand-green: #588B71;
+  --brand-green-hover: #47755E;
+  --brand-blue: #5B78A8;
+  --brand-blue-hover: #486391;
+  --brand-pink-btn: #F0D6D8;
+  --brand-pink-text: #7A484D;
+
+  /* 圓角與柔和陰影 */
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --shadow-card: 0 8px 20px rgba(78, 60, 42, 0.07), 0 2px 6px rgba(78, 60, 42, 0.04);
+  --shadow-clay: 0 10px 24px rgba(78, 60, 42, 0.11), inset 0 2px 2px rgba(255, 255, 255, 0.75);
+  --shadow-device: 0 24px 60px rgba(52, 39, 28, 0.22), 0 4px 16px rgba(52, 39, 28, 0.12);
+
+  /* 字體設定 */
+  --font-sans: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  min-height: 100%;
+  background-color: var(--bg-milktea);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: 16px; /* 確保 >= 16px 防止 iPhone Safari 自動放大 (SPEC 7) */
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* ==========================================================================
+   頂部裝置視角切換器 (僅在桌面大螢幕顯示，方便一鍵預覽 iPhone / iPad / 寬螢幕)
+   ========================================================================== */
+.viewport-switcher-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 1320px;
+  margin: 12px auto 6px;
+  padding: 8px 16px;
+  background: rgba(252, 249, 245, 0.88);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-warm);
+  border-radius: 999px;
+  box-shadow: var(--shadow-card);
+  font-size: 14px;
+}
+
+.switcher-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.switcher-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-subtle);
+  padding: 4px;
+  border-radius: 999px;
+}
+
+.vp-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.vp-btn.active {
+  background: var(--brand-green);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(88, 139, 113, 0.35);
+}
+
+.switcher-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--card-mint-bg);
+  color: var(--down-green);
+  border: 1px solid var(--card-mint-border);
+}
+
+.status-pill.sandbox {
+  background: var(--card-cream-bg);
+  color: #8A6226;
+  border-color: var(--card-cream-border);
+}
+
+/* 在真實手機螢幕上隱藏外框切換器，直接使用原生全螢幕 */
+@media (max-width: 640px) {
+  .viewport-switcher-bar {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   主應用容器：支援 iPhone 直向模擬框 / iPad 橫向框 / 自動響應式全寬
+   ========================================================================== */
+.workspace-stage {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 8px 16px 32px;
+  min-height: calc(100vh - 64px);
+}
+
+/* 預設 iPhone 優先外框模式 (在桌機瀏覽時直觀呈現 iPhone 16 Pro 尺寸與質感) */
+body[data-viewport="iphone"] .app-shell {
+  width: 412px;
+  max-width: 100%;
+  min-height: 852px;
+  max-height: 880px;
+  border-radius: 46px;
+  border: 10px solid #2D2723;
+  box-shadow: var(--shadow-device);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: var(--bg-shell);
+}
+
+/* iPhone 動態島裝飾（僅在桌機預覽 iPhone 外框時顯示） */
+.iphone-notch-bar {
+  display: none;
+}
+
+body[data-viewport="iphone"] .iphone-notch-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 24px 4px;
+  background: var(--bg-shell);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.notch-pill {
+  width: 96px;
+  height: 22px;
+  background: #1E1A17;
+  border-radius: 999px;
+}
+
+/* iPad 橫向預覽模式 */
+body[data-viewport="ipad"] .app-shell {
+  width: 1080px;
+  max-width: 100%;
+  min-height: 740px;
+  border-radius: 34px;
+  border: 10px solid #2D2723;
+  box-shadow: var(--shadow-device);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  background: var(--bg-shell);
+  position: relative;
+}
+
+/* 自動適應全螢幕模式 */
+body[data-viewport="responsive"] .app-shell {
+  width: 100%;
+  max-width: 1280px;
+  min-height: calc(100vh - 90px);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-warm);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  background: var(--bg-shell);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+@media (min-width: 1024px) {
+  body[data-viewport="responsive"] .app-shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .workspace-stage {
+    padding: 0;
+    min-height: 100vh;
+  }
+  body[data-viewport="iphone"] .app-shell,
+  body[data-viewport="ipad"] .app-shell,
+  body[data-viewport="responsive"] .app-shell {
+    width: 100% !important;
+    min-height: 100vh !important;
+    max-height: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  body[data-viewport="iphone"] .iphone-notch-bar {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   登入頁面 (0. 登入頁面 — 完全對齊示意圖最左側 iPhone 畫面)
+   ========================================================================== */
+.login-screen {
+  flex: 1;
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 24px 32px;
+  background: linear-gradient(180deg, #F8F3EB 0%, #EFE6D8 100%);
+  text-align: center;
+  overflow-y: auto;
+}
+
+.login-hero-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 360px;
+  margin: auto 0;
+}
+
+.clay-svg-hero {
+  width: 190px;
+  height: 175px;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 12px 18px rgba(92, 73, 56, 0.12));
+}
+
+.login-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.login-subtitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 26px;
+}
+
+.btn-google-login {
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 1.5px solid #E2D9CC;
+  box-shadow: 0 10px 22px rgba(78, 60, 42, 0.12), inset 0 2px 0 #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-google-login:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(78, 60, 42, 0.16);
+}
+
+.btn-google-login:active {
+  transform: translateY(1px);
+}
+
+.login-secondary-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.btn-sandbox-enter {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--card-mint-bg);
+  border: 1px solid var(--card-mint-border);
+  color: var(--down-green);
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-config-supabase {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-decoration: underline;
+  padding: 6px;
+}
+
+.login-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-warm);
+}
+
+.trust-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.clay-svg-shield {
+  width: 42px;
+  height: 42px;
+}
+
+/* ==========================================================================
+   左側導覽欄 (iPad 橫向 & 桌面寬螢幕顯示)
+   ========================================================================== */
+.side-nav {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #ECE2D2;
+  border-right: 1px solid var(--border-warm);
+  padding: 24px 14px;
+}
+
+body[data-viewport="ipad"] .side-nav {
+  display: flex;
+}
+
+@media (min-width: 1024px) {
+  body[data-viewport="responsive"] .side-nav {
+    display: flex;
+  }
+}
+
+.side-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-warm);
+  margin-bottom: 16px;
+}
+
+.side-brand .clay-svg-icon {
+  width: 58px;
+  height: 58px;
+  margin-bottom: 8px;
+}
+
+.side-brand-title {
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.side-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.side-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  transition: all 0.18s ease;
+  text-align: left;
+}
+
+.side-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--text-primary);
+}
+
+.side-nav-btn.active {
+  background: #DCE6F7;
+  color: #36568C;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(54, 86, 140, 0.1);
+}
+
+.side-nav-footer {
+  padding-top: 14px;
+  border-top: 1px solid var(--border-warm);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   主內容區與頂部標題列
+   ========================================================================== */
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--bg-shell);
+}
+
+.top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.header-brand .clay-svg-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.header-title {
+  font-size: 19px;
+  font-weight: 900;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-header-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 13px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  background: var(--brand-green);
+  color: #FFFFFF;
+  box-shadow: 0 3px 10px rgba(88, 139, 113, 0.28);
+  min-height: 38px;
+}
+
+.btn-header-action.blue {
+  background: var(--brand-blue);
+  box-shadow: 0 3px 10px rgba(91, 120, 168, 0.28);
+}
+
+.btn-header-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-subtle);
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* 捲動內容容器 */
+.scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 14px 88px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+body[data-viewport="ipad"] .scroll-content {
+  padding: 18px 22px 28px;
+}
+
+@media (min-width: 1024px) {
+  body[data-viewport="responsive"] .scroll-content {
+    padding: 20px 26px 32px;
+  }
+}
+
+/* ==========================================================================
+   帳戶選擇器列 (單選、複選、全選 — 對應示意圖頂部勾選列)
+   ========================================================================== */
+.account-selector-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 11px 14px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.account-selector-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.account-selector-label {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+.quote-date-tag {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.account-checkbox-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.account-checks-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.acc-check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.acc-check-label:hover {
+  background: var(--surface-subtle);
+}
+
+.acc-check-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #4673B8;
+  cursor: pointer;
+}
+
+.btn-select-all {
+  padding: 5px 13px;
+  border-radius: 999px;
+  background: var(--brand-pink-btn);
+  color: var(--brand-pink-text);
+  font-size: 13.5px;
+  font-weight: 800;
+  flex-shrink: 0;
+  min-height: 32px;
+}
+
+/* ==========================================================================
+   首頁：2x2 四大核心統計卡片 (莫蘭迪色系 + 大字體 + 3D 黏土圖示)
+   ========================================================================== */
+.stats-grid-2x2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 11px;
+}
+
+.stat-clay-card {
+  border-radius: var(--radius-lg);
+  padding: 12px 12px 11px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  min-height: 106px;
+}
+
+.stat-clay-card.mint {
+  background: var(--card-mint-bg);
+  border: 1px solid var(--card-mint-border);
+}
+
+.stat-clay-card.rose {
+  background: var(--card-rose-bg);
+  border: 1px solid var(--card-rose-border);
+}
+
+.stat-clay-card.cream {
+  background: var(--card-cream-bg);
+  border: 1px solid var(--card-cream-border);
+}
+
+.stat-clay-card.blue {
+  background: var(--card-blue-bg);
+  border: 1px solid var(--card-blue-border);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  white-space: nowrap;
+  word-break: keep-all;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-sub {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.clay-svg-stat {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+
+body[data-viewport="ipad"] .stat-value {
+  font-size: 24px;
+}
+
+body[data-viewport="ipad"] .clay-svg-stat {
+  width: 54px;
+  height: 54px;
+}
+
+@media (min-width: 768px) {
+  body[data-viewport="responsive"] .stat-value {
+    font-size: 24px;
+  }
+  body[data-viewport="responsive"] .clay-svg-stat {
+    width: 54px;
+    height: 54px;
+  }
+}
+
+/* 損益顏色與正負文字輔助 */
+.pnl-up {
+  color: var(--up-red) !important;
+}
+
+.pnl-down {
+  color: var(--down-green) !important;
+}
+
+.pnl-Zero {
+  color: var(--text-primary) !important;
+}
+
+.pnl-tag {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.pnl-tag.up {
+  background: var(--up-red-bg);
+  color: var(--up-red);
+}
+
+.pnl-tag.down {
+  background: var(--down-green-bg);
+  color: var(--down-green);
+}
+
+/* ==========================================================================
+   首頁：2x2 快捷操作黏土卡片 (對應上方手機首頁示意圖)
+   ========================================================================== */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 11px;
+}
+
+body[data-viewport="ipad"] .quick-actions-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (min-width: 1024px) {
+  body[data-viewport="responsive"] .quick-actions-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.quick-action-card {
+  border-radius: var(--radius-lg);
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: var(--shadow-clay);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  transition: transform 0.15s ease;
+  min-height: 110px;
+}
+
+.quick-action-card:hover {
+  transform: translateY(-2px);
+}
+
+.quick-action-card:active {
+  transform: translateY(1px);
+}
+
+.quick-action-card.act-1 { background: var(--action-1-bg); }
+.quick-action-card.act-2 { background: var(--action-2-bg); }
+.quick-action-card.act-3 { background: var(--action-3-bg); }
+.quick-action-card.act-4 { background: var(--action-4-bg); }
+
+.clay-svg-action {
+  width: 56px;
+  height: 56px;
+}
+
+.quick-action-title {
+  font-size: 16.5px;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+/* ==========================================================================
+   通用白色圓角卡片與表格 (在庫持股、交易紀錄、月度統計表)
+   ========================================================================== */
+.section-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  box-shadow: var(--shadow-card);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.section-link {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--brand-blue);
+}
+
+.table-scroll-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.morandi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+
+.morandi-table th {
+  background: var(--surface-subtle);
+  color: var(--text-secondary);
+  font-weight: 800;
+  font-size: 13px;
+  padding: 9px 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.morandi-table th.num,
+.morandi-table td.num {
+  text-align: right;
+  white-space: nowrap;
+  word-break: keep-all;
+  font-variant-numeric: tabular-nums;
+}
+
+.morandi-table th.center,
+.morandi-table td.center {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.morandi-table td {
+  padding: 10px 7px;
+  border-bottom: 1px solid var(--border-soft);
+  font-weight: 700;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.morandi-table td.wrap-text {
+  white-space: normal;
+  min-width: 210px;
+}
+
+.morandi-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* 買賣別圓角標籤 */
+.badge-trade {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 7px;
+  font-size: 13.5px;
+  font-weight: 900;
+}
+
+.badge-trade.buy {
+  background: var(--up-red-bg);
+  color: var(--up-red);
+}
+
+.badge-trade.sell {
+  background: var(--down-green-bg);
+  color: var(--down-green);
+}
+
+/* 寬螢幕／iPad 雙欄圖表列 */
+.charts-two-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+body[data-viewport="ipad"] .charts-two-col {
+  grid-template-columns: 1.15fr 0.85fr;
+}
+
+@media (min-width: 900px) {
+  body[data-viewport="responsive"] .charts-two-col {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+}
+
+/* ==========================================================================
+   篩選器卡片 (交易紀錄篩選)
+   ========================================================================== */
+.filter-form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-label {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  width: 68px;
+  flex-shrink: 0;
+}
+
+.form-control {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-warm);
+  background: #FFFFFF;
+  color: var(--text-primary);
+  font-weight: 700;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.form-control:focus {
+  border-color: var(--brand-blue);
+}
+
+.date-range-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   帳戶管理卡片 (對應 6. 帳戶管理頁面)
+   ========================================================================== */
+.account-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.account-manage-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-card);
+}
+
+.account-manage-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.clay-svg-acc {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
+
+.account-manage-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.account-manage-name {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.account-manage-sub {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.account-manage-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-warm);
+  font-size: 16px;
+  transition: transform 0.12s;
+}
+
+.btn-icon-circle:hover {
+  transform: scale(1.06);
+}
+
+.btn-icon-circle.danger {
+  background: var(--up-red-bg);
+  border-color: var(--up-red-border);
+  color: var(--up-red);
+}
+
+.warning-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--up-red-bg);
+  border: 1px solid var(--up-red-border);
+  color: #9E2A2B;
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+/* ==========================================================================
+   損益報表分頁切換 (對應 5. 損益報表頁面)
+   ========================================================================== */
+.report-tabs-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--surface-subtle);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-warm);
+}
+
+.report-tab-btn {
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+
+.report-tab-btn.active {
+  background: var(--surface-card);
+  color: var(--brand-blue);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* ==========================================================================
+   底部導覽列 (iPhone / iPad 直向底部固定導覽)
+   ========================================================================== */
+.bottom-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: rgba(252, 249, 245, 0.96);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-warm);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 4px 6px 8px;
+  z-index: 30;
+}
+
+body[data-viewport="ipad"] .bottom-nav {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  body[data-viewport="responsive"] .bottom-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .bottom-nav {
+    position: fixed;
+  }
+}
+
+.bottom-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border-radius: 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  transition: color 0.15s;
+}
+
+.bottom-nav-btn .nav-ico {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.bottom-nav-btn.active {
+  color: #36568C;
+}
+
+.bottom-nav-btn.active .nav-ico {
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   彈出表單 Modal (3. 新增／編輯交易、手動修改收盤價、帳戶編輯)
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 33, 25, 0.52);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 440px;
+  max-height: 92vh;
+  background: var(--surface-card);
+  border-radius: var(--radius-xl);
+  border: 2px solid var(--border-warm);
+  box-shadow: 0 24px 48px rgba(35, 25, 18, 0.28);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--surface-subtle);
+  border-bottom: 1px solid var(--border-warm);
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.modal-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  padding: 18px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-field-row {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-field-label {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+/* 買賣別切換按鈕組 (對應 3. 新增／編輯交易表單) */
+.action-type-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn-action-type {
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 900;
+  border: 1.5px solid var(--border-warm);
+  background: var(--surface-subtle);
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+
+.btn-action-type.buy.active {
+  background: #D96B66;
+  border-color: #C25550;
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(217, 107, 102, 0.3);
+}
+
+.btn-action-type.sell.active {
+  background: #4C8C72;
+  border-color: #3B755D;
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(76, 140, 114, 0.3);
+}
+
+.stock-lookup-group {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-lookup {
+  padding: 0 14px;
+  min-height: 42px;
+  border-radius: var(--radius-sm);
+  background: #7A9BC4;
+  color: #FFFFFF;
+  font-size: 14.5px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.trade-preview-box {
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-warm);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trade-preview-line {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 800;
+}
+
+.modal-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 14px 20px 18px;
+  background: var(--surface-subtle);
+  border-top: 1px solid var(--border-warm);
+}
+
+.btn-modal-cancel {
+  min-height: 48px;
+  border-radius: var(--radius-md);
+  background: #E4DDD3;
+  color: var(--text-primary);
+  font-size: 16.5px;
+  font-weight: 800;
+}
+
+.btn-modal-save {
+  min-height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--brand-green);
+  color: #FFFFFF;
+  font-size: 16.5px;
+  font-weight: 900;
+  box-shadow: 0 4px 12px rgba(88, 139, 113, 0.3);
+}
+
+/* 提示 Toast */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  width: 92%;
+  max-width: 400px;
+}
+
+.toast-msg {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: #2F2620;
+  color: #FFFFFF;
+  font-size: 14.5px;
+  font-weight: 800;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  pointer-events: auto;
+}
+
+.toast-msg.error {
+  background: #B83333;
+}
+
+.toast-msg.success {
+  background: #3B7A5E;
+}
