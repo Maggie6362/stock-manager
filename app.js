@@ -319,7 +319,7 @@
     acceptanceReport: null,
   };
 
-  const DEFAULT_PUBLIC_SUPABASE = {
+  var DEFAULT_PUBLIC_SUPABASE = {
     url: 'https://luoladoworyayvyekbiq.supabase.co',
     anonKey:
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1b2xhZG93b3J5YXl2eWVrYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2NTU0ODAsImV4cCI6MjEwODIzMTQ4MH0.Ee5HYWgWvemexgDqoATLyEJIvcodKAytxLroNJU3yWk',
@@ -338,7 +338,7 @@
         }
       }
     } catch (_) {}
-    return { ...DEFAULT_PUBLIC_SUPABASE };
+    return { url: 'https://luoladoworyayvyekbiq.supabase.co', anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1b2xhZG93b3J5YXl2eWVrYmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2NTU0ODAsImV4cCI6MjEwODIzMTQ4MH0.Ee5HYWgWvemexgDqoATLyEJIvcodKAytxLroNJU3yWk' };
   }
 
   function saveSandboxState() {
