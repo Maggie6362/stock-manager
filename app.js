@@ -592,7 +592,15 @@
       if (state.selectedAccountIds.length === 0) {
         state.selectedAccountIds = state.accounts.map((a) => a.id);
       }
-      state.lastQuoteSyncAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      state.lastQuoteSyncAt = (() => {
+        const dates = Object.values(pMap).map((p) => String(p.updated_at || '')).filter(Boolean).sort();
+        if (dates.length === 0) return '尚未更新';
+        const d = new Date(dates[dates.length - 1]);
+        if (!Number.isFinite(d.getTime())) return '尚未更新';
+        return new Intl.DateTimeFormat('sv-SE', {
+          timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false,
+        }).format(d);
+      })();
       renderApp();
     } catch (err) {
       showToast(`雲端資料同步失敗：${err.message || err}`, 'error');
@@ -831,6 +839,111 @@
     return collected.length > 0 ? collected : null;
   }
 
+  /**
+   * 解析證交所官網 CSV（每列以雙引號包住欄位）。
+   */
+  function parseQuotedCsv(text) {
+    const rows = [];
+    const lines = String(text || '').split(/\r?\n/);
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const cells = [];
+      let cur = '';
+      let inQ = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (inQ) {
+          if (ch === '"' && line[i + 1] === '"') {
+            cur += '"';
+            i++;
+          } else if (ch === '"') {
+            inQ = false;
+          } else {
+            cur += ch;
+          }
+        } else if (ch === '"') {
+          inQ = true;
+        } else if (ch === ',') {
+          cells.push(cur);
+          cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      cells.push(cur);
+      rows.push(cells.map((c) => c.trim()));
+    }
+    return rows;
+  }
+
+  /**
+   * 證交所官網「上市個股日成交資訊」全日檔（www.twse.com.tw，具 CORS: *，瀏覽器可直連）。
+   * 這個來源在收盤後當天就會更新；openapi.twse.com.tw 的同名資料常延遲一天，
+   * 會造成「顯示更新成功、但帶入的是前一天收盤價」的問題，因此改以此為第一優先。
+   */
+  async function fetchTwseOfficialDayAll() {
+    const url = 'https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY_ALL?response=json';
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    try {
+      const resp = await fetch(url, { cache: 'no-store', credentials: 'omit', signal: ctrl.signal });
+      if (!resp.ok) return null;
+      const text = await resp.text();
+      const out = [];
+      // 官網目前回傳 CSV；若日後改回 JSON（fields + data）也一併支援
+      let json = null;
+      try {
+        json = JSON.parse(text);
+      } catch (_) {}
+      if (json && Array.isArray(json.data) && Array.isArray(json.fields)) {
+        const idx = (name) => json.fields.findIndex((f) => String(f).includes(name));
+        const iCode = idx('證券代號');
+        const iName = idx('證券名稱');
+        const iClose = idx('收盤價');
+        const dateStr = String(json.date || '');
+        for (const r of json.data) {
+          out.push({ Code: r[iCode], Name: r[iName], ClosingPrice: r[iClose], Date: dateStr });
+        }
+      } else {
+        const rows = parseQuotedCsv(text);
+        const header = rows.shift() || [];
+        const iDate = header.findIndex((h) => h.includes('日期'));
+        const iCode = header.findIndex((h) => h.includes('證券代號'));
+        const iName = header.findIndex((h) => h.includes('證券名稱'));
+        const iClose = header.findIndex((h) => h.includes('收盤價'));
+        if (iCode < 0 || iClose < 0) return null;
+        for (const r of rows) {
+          out.push({
+            Code: r[iCode],
+            Name: iName >= 0 ? r[iName] : '',
+            ClosingPrice: r[iClose],
+            Date: iDate >= 0 ? r[iDate] : '',
+          });
+        }
+      }
+      return out.length > 0 ? out : null;
+    } catch (_) {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function taipeiNowText() {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Taipei',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(new Date());
+    const get = (t) => (parts.find((p) => p.type === t) || {}).value || '';
+    const hh = get('hour') === '24' ? '00' : get('hour');
+    return `${get('year')}-${get('month')}-${get('day')} ${hh}:${get('minute')}`;
+  }
+
   async function fetchFallbackQuotesForIds(stockIds) {
     const uniqueIds = Array.from(new Set((stockIds || []).map((s) => String(s).trim()).filter(Boolean)));
     if (uniqueIds.length === 0) return null;
@@ -849,10 +962,10 @@
   /**
    * 批次更新 TWSE／TPEX 收盤價 (SPEC 3, 4.5, T10)
    * 來源優先序：
-   * 1. Supabase RPC get_twse_stock_day_all（雲端代抓，無瀏覽器 CORS）
-   * 2. 本機 /api/twse-quotes
-   * 3. GitHub Pages：CORS 代理抓證交所／櫃買全日檔
-   * 4. FinMind（瀏覽器可直連）與 Yahoo 日線，只補持倉代號
+   * 1. 證交所官網全日檔（www.twse.com.tw，CORS 可直連，收盤當天即更新）
+   * 2. 備援：Supabase RPC、本機 /api/twse-quotes、openapi（經 CORS 代理）
+   * 3. 上櫃／未匹配代號，或上市資料不是今天時：FinMind（直連）與 Yahoo 日線補抓
+   * 每檔股票取「資料日期最新」的一筆；若既有價格（例如手動價）日期比抓到的更新，保留既有價格。
    * 若全部失敗，保留最後有效收盤價不清空。
    */
   async function handleRefreshClosingPrices() {
@@ -872,10 +985,11 @@
       return;
     }
 
-    let apiRows = null;
+    const todayTpe = taipeiTodayISO();
+    let apiRows = await fetchTwseOfficialDayAll();
 
-    // 1. 優先嘗試透過 Supabase 雲端 RPC (get_twse_stock_day_all) 取得證交所收盤價（在 GitHub Pages / iPhone Safari 皆 100% 免除瀏覽器 CORS 限制）
-    if (state.supabaseClient) {
+    // 備援 1：Supabase RPC
+    if (!apiRows && state.supabaseClient) {
       try {
         const { data: rpcData, error: rpcErr } = await state.supabaseClient.rpc('get_twse_stock_day_all');
         if (!rpcErr && Array.isArray(rpcData) && rpcData.length > 0) {
@@ -884,7 +998,7 @@
       } catch (_) {}
     }
 
-    // 2. 若在本地伺服器環境，使用無 CORS 限制之 /api/twse-quotes 端點
+    // 備援 2：本機伺服器
     if (!apiRows && window.location.protocol.startsWith('http') && window.location.hostname === 'localhost') {
       try {
         const localResp = await fetch('/api/twse-quotes', { cache: 'no-store' });
@@ -897,34 +1011,28 @@
       } catch (_) {}
     }
 
-    // 3. 純前端（GitHub Pages）經 CORS 代理抓上市／上櫃全日收盤
+    // 備援 3：openapi 經 CORS 代理
     if (!apiRows) {
       apiRows = await fetchListedDayAllViaBrowser();
     }
 
-    // 4. 全日檔失敗時，改抓持倉代號（FinMind 直連 + Yahoo 代理）
-    if (!apiRows) {
-      apiRows = await fetchFallbackQuotesForIds(holdingStockIds);
+    // 判斷上市資料是否為今天；不是今天（或沒抓到）就對全部持倉補抓 FinMind／Yahoo
+    const listedPreview = window.StockEngine.applyTwseQuoteBatch({}, apiRows, holdingStockIds);
+    const listedIsToday = listedPreview.ok && listedPreview.latestDate === todayTpe;
+    const idsToSupplement = listedIsToday ? listedPreview.unmatchedStockIds : holdingStockIds;
+
+    if (idsToSupplement.length > 0) {
+      const extraRows = await fetchFallbackQuotesForIds(idsToSupplement);
+      if (extraRows) {
+        apiRows = [...(apiRows || []), ...extraRows];
+      }
     }
 
-    let batchRes = window.StockEngine.applyTwseQuoteBatch(
+    const batchRes = window.StockEngine.applyTwseQuoteBatch(
       state.pricesMap,
       apiRows,
       holdingStockIds
     );
-
-    // 上市全日成功但上櫃／特殊代號未匹配時，再補抓未匹配代號後一次合併套用
-    if (batchRes.ok && batchRes.unmatchedStockIds.length > 0) {
-      const extraRows = await fetchFallbackQuotesForIds(batchRes.unmatchedStockIds);
-      if (extraRows) {
-        apiRows = [...apiRows, ...extraRows];
-        batchRes = window.StockEngine.applyTwseQuoteBatch(
-          state.pricesMap,
-          apiRows,
-          holdingStockIds
-        );
-      }
-    }
 
     state.isUpdatingQuotes = false;
 
@@ -939,31 +1047,43 @@
     }
 
     state.pricesMap = batchRes.pricesMap;
-    state.lastQuoteSyncAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+    state.lastQuoteSyncAt = taipeiNowText();
     state.lastQuoteSyncError = null;
 
     if (state.authMode === 'supabase' && state.supabaseClient && state.sessionUser) {
+      const nowIso = new Date().toISOString();
       const upserts = Object.values(state.pricesMap).map((p) => ({
         user_id: state.sessionUser.id,
         stock_id: p.stock_id,
         stock_name: p.stock_name || '',
         close_price: p.close_price,
-        price_date: p.price_date || new Date().toISOString().slice(0, 10),
+        price_date: p.price_date || todayTpe,
         source: p.source || 'TWSE',
-        updated_at: new Date().toISOString(),
+        updated_at: p.updated_at || nowIso,
       }));
       if (upserts.length > 0) {
-        await state.supabaseClient.from(state.supabaseTables.prices).upsert(upserts, { onConflict: 'user_id,stock_id' });
+        const { error: upErr } = await state.supabaseClient
+          .from(state.supabaseTables.prices)
+          .upsert(upserts, { onConflict: 'user_id,stock_id' });
+        if (upErr) {
+          showToast(`收盤價已更新於畫面，但雲端儲存失敗：${upErr.message}`, 'error');
+        }
       }
     } else {
       saveSandboxState();
     }
 
-    const unmatchedMsg =
-      batchRes.unmatchedStockIds.length > 0
-        ? `；未匹配代號：${batchRes.unmatchedStockIds.join(', ')}（可手動設定參考價）`
-        : '';
-    showToast(`已成功從證交所更新 ${batchRes.updatedCount} 檔收盤價${unmatchedMsg}`, 'success');
+    const msgs = [`已更新 ${batchRes.updatedCount} 檔收盤價（資料日期：${batchRes.latestDate || '—'}）`];
+    if (batchRes.latestDate && batchRes.latestDate < todayTpe) {
+      msgs.push(`今日（${todayTpe}）收盤資料尚未發布或今日休市`);
+    }
+    if (batchRes.keptNewerCount > 0) {
+      msgs.push(`${batchRes.keptNewerCount} 檔已有較新的價格（如手動價），予以保留`);
+    }
+    if (batchRes.unmatchedStockIds.length > 0) {
+      msgs.push(`查無報價：${batchRes.unmatchedStockIds.join(', ')}（可手動設定參考價）`);
+    }
+    showToast(msgs.join('；'), 'success');
     renderApp();
   }
 

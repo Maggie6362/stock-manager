@@ -1032,6 +1032,20 @@
         [{ stock_id: '2330', close: 2370, date: '2026-10-30' }],
         ['2330']
       );
+      // 舊資料不可覆蓋較新的手動價；多來源時取日期最新者
+      const afterStale = applyTwseQuoteBatch(
+        { '2330': { stock_id: '2330', close_price: 2295, price_date: '2026-11-03', source: 'MANUAL' } },
+        [{ Code: '2330', ClosingPrice: '2330.00', Date: '1151102' }],
+        ['2330']
+      );
+      const afterMulti = applyTwseQuoteBatch(
+        {},
+        [
+          { Code: '2330', ClosingPrice: '2330.00', Date: '1151102' },
+          { stock_id: '2330', close: 2295, date: '2026-11-03' },
+        ],
+        ['2330']
+      );
       const passed =
         !afterFail.ok &&
         afterFail.pricesMap['2330'].close_price === 1080 &&
@@ -1042,7 +1056,11 @@
         afterTpex.ok &&
         afterTpex.pricesMap['6488'].close_price === 756 &&
         afterFinMind.ok &&
-        afterFinMind.pricesMap['2330'].close_price === 2370;
+        afterFinMind.pricesMap['2330'].close_price === 2370 &&
+        afterStale.pricesMap['2330'].close_price === 2295 &&
+        afterStale.keptNewerCount === 1 &&
+        afterMulti.pricesMap['2330'].close_price === 2295 &&
+        afterMulti.latestDate === '2026-11-03';
       record(
         'T10',
         '收盤價更新、失敗保留舊價與未匹配提示',
@@ -1097,7 +1115,12 @@
       return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
     }
     if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-    return new Date().toISOString().slice(0, 10);
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Taipei',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
   }
 
   function applyTwseQuoteBatch(existingPricesMap, apiRows, targetStockIds = []) {
@@ -1123,8 +1146,8 @@
         .replace(/,/g, '')
         .trim();
       const closePrice = Number(rawPrice);
-      if (code && Number.isFinite(closePrice) && closePrice > 0) {
-        rowMap.set(code, {
+      if (code && rawPrice !== '' && Number.isFinite(closePrice) && closePrice > 0) {
+        const candidate = {
           stock_id: code,
           stock_name: String(
             row.Name || row.name || row.stock_name || row.CompanyName || ''
@@ -1133,12 +1156,19 @@
           price_date: parseTwseRocDate(row.Date || row.date),
           source: 'TWSE',
           updated_at: new Date().toISOString(),
-        });
+        };
+        // 多個來源同時有資料時，保留資料日期最新的一筆
+        const prev = rowMap.get(code);
+        if (!prev || candidate.price_date > prev.price_date) {
+          rowMap.set(code, candidate);
+        }
       }
     }
 
     const nextMap = { ...safeExisting };
     let updatedCount = 0;
+    let keptNewerCount = 0;
+    let latestDate = null;
     const unmatchedStockIds = [];
 
     const checkList =
@@ -1148,7 +1178,18 @@
 
     for (const stockId of checkList) {
       if (rowMap.has(stockId)) {
-        nextMap[stockId] = rowMap.get(stockId);
+        const incoming = rowMap.get(stockId);
+        const existing = safeExisting[stockId];
+        if (!latestDate || incoming.price_date > latestDate) latestDate = incoming.price_date;
+        // 既有價格（例如使用者手動輸入的今日價）日期較新時，不以較舊的行情覆蓋
+        if (existing && existing.price_date && String(existing.price_date) > incoming.price_date) {
+          keptNewerCount += 1;
+          continue;
+        }
+        nextMap[stockId] = {
+          ...incoming,
+          stock_name: incoming.stock_name || (existing && existing.stock_name) || '',
+        };
         updatedCount += 1;
       } else {
         unmatchedStockIds.push(stockId);
@@ -1159,8 +1200,10 @@
       ok: true,
       pricesMap: nextMap,
       updatedCount,
+      keptNewerCount,
+      latestDate,
       unmatchedStockIds,
-      priceDate: updatedCount > 0 ? nextMap[checkList.find((id) => rowMap.has(id))]?.price_date : null,
+      priceDate: latestDate,
     };
   }
 
